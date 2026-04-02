@@ -20,19 +20,29 @@ try:
     from claude_pyspark_proj.streaming.get_data_from_event_hubs import run_pipeline
 except ImportError as e:
     # Fallback: Load the module directly from the workspace
-    print(f"[INFO] Direct import failed. Attempting to load from workspace...")
+    print(f"[INFO] Direct import failed: {e}")
+    print(f"[INFO] Attempting to load from workspace...")
 
-    # Get the workspace path where files are deployed
-    workspace_path = "/Workspace/Users/ashutosh_ranghar@epam.com/.bundle/claude-pyspark-proj/dev/files"
+    # In DAB deployment, files are at:
+    # /Workspace/Users/.../files/src/jobs/event_hub_streaming.py
+    # We need to add the parent 'src' directory to sys.path:
+    # /Workspace/Users/.../files/src
+    workspace_paths = [
+        "/Workspace/Users/ashutosh_ranghar@epam.com/.bundle/claude-pyspark-proj/dev/files/src",
+        "/Workspace/Users/ashutosh_ranghar@epam.com/claude-pyspark-proj/src",
+    ]
 
-    if workspace_path not in sys.path:
-        sys.path.insert(0, workspace_path)
+    for workspace_path in workspace_paths:
+        if workspace_path not in sys.path:
+            sys.path.insert(0, workspace_path)
+            print(f"[INFO] Added to sys.path: {workspace_path}")
 
     try:
         from claude_pyspark_proj.streaming.get_data_from_event_hubs import run_pipeline
+        print("[INFO] Successfully imported from workspace path")
     except ImportError as e2:
         print(f"[ERROR] Failed to import streaming pipeline module: {e2}")
-        print(f"[INFO] sys.path contents: {sys.path}")
+        print(f"[INFO] sys.path: {sys.path}")
         raise
 
 
