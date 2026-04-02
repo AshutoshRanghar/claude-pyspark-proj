@@ -8,8 +8,12 @@ parses JSON payloads, and writes two streaming KPI tables:
 Usage (Databricks notebook or job):
     from kafka_streaming_pipeline import run_pipeline
     run_pipeline(spark)
+
+Environment Variables Required:
+    EVENT_HUBS_CONNECTION_STRING — Azure Event Hubs connection string
 """
 
+import os
 from dataclasses import dataclass
 
 from pyspark.sql import SparkSession, DataFrame
@@ -40,11 +44,20 @@ class KafkaConfig:
 
     bootstrap_server: str = "ash-kafka.servicebus.windows.net:9093"
     topic: str = "ash-basic-kafka-topic-1"
-    connection_string: str = (
-        "Endpoint=sb://ash-kafka.servicebus.windows.net/;"
-        "SharedAccessKeyName=RootManageSharedAccessKey;"
-        "SharedAccessKey=QVVL4kfnfH9ow6K9WTxbgS1HBsAPYyf3k+AEhOhOMcU="
-    )
+
+    @property
+    def connection_string(self) -> str:
+        """Get connection string from environment variable."""
+        conn_str = os.getenv(
+            "EVENT_HUBS_CONNECTION_STRING",
+            os.getenv("DATABRICKS_AZURE_EVENT_HUBS_CONNECTION_STRING")
+        )
+        if not conn_str:
+            raise ValueError(
+                "Connection string not found. Set EVENT_HUBS_CONNECTION_STRING "
+                "environment variable in Databricks secrets or job parameters."
+            )
+        return conn_str
 
     @property
     def sasl_config(self) -> str:
