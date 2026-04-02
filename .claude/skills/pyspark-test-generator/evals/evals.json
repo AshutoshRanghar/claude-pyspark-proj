@@ -1,0 +1,23 @@
+{
+  "skill_name": "pyspark-test-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need tests for this PySpark transformation function that parses JSON taxi events and converts timestamps. Here's the code:\n\nfrom pyspark.sql import DataFrame\nfrom pyspark.sql.functions import col, from_json, from_unixtime, to_timestamp\nfrom pyspark.sql.types import StructType, StructField, StringType, LongType, DoubleType, IntegerType\n\nTAXI_SCHEMA = StructType([\n    StructField('vendorID', StringType(), True),\n    StructField('tpepPickupDateTime', LongType(), True),\n    StructField('totalAmount', DoubleType(), True),\n    StructField('passengerCount', IntegerType(), True),\n])\n\ndef parse_taxi_events(raw_df: DataFrame) -> DataFrame:\n    \"\"\"Parse Kafka JSON value and convert epoch-ms timestamps to proper timestamps.\"\"\"\n    return (\n        raw_df.select(\n            from_json(col('value').cast('string'), TAXI_SCHEMA).alias('data')\n        )\n        .select('data.*')\n        .withColumn(\n            'event_time',\n            to_timestamp(from_unixtime(col('tpepPickupDateTime') / 1000))\n        )\n    )\n\nCreate comprehensive tests for this function.",
+      "expected_output": "A pytest test file with: 1) schema validation tests, 2) timestamp conversion tests, 3) null/invalid data handling tests, 4) sample data fixtures for Kafka-like input",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Write tests for this PySpark aggregation function:\n\nfrom pyspark.sql import DataFrame\nfrom pyspark.sql.functions import col, spark_sum\nfrom pyspark.sql.streaming import StreamingQuery\n\ndef write_vendor_revenue(df: DataFrame, checkpoint_path: str) -> StreamingQuery:\n    \"\"\"Aggregate total revenue per vendor and write to Delta table.\"\"\"\n    vendor_revenue_df = (\n        df.withWatermark('event_time', '10 minutes')\n        .groupBy('vendorID')\n        .agg(spark_sum('totalAmount').alias('totalAmount'))\n    )\n    return (\n        vendor_revenue_df.writeStream.format('delta')\n        .outputMode('complete')\n        .option('checkpointLocation', checkpoint_path)\n        .trigger(availableNow=True)\n        .toTable('kpi_vendor_revenue')\n    )\n\nInclude tests for the groupBy aggregation logic and edge cases.",
+      "expected_output": "A pytest test file with: 1) aggregation correctness tests (sum per vendor), 2) schema tests, 3) handling of multiple vendors, 4) null value handling, 5) helper fixtures for creating sample revenue data",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I have a complete PySpark streaming module with multiple functions. Can you create a comprehensive test suite? Here's the main functions:\n\nfrom pyspark.sql import SparkSession, DataFrame\nfrom pyspark.sql.functions import col, from_json, sum as spark_sum, count\n\ndef read_kafka_stream(spark: SparkSession, bootstrap_server: str, topic: str) -> DataFrame:\n    return spark.readStream.format('kafka').option('kafka.bootstrap.servers', bootstrap_server).option('subscribe', topic).load()\n\ndef parse_events(raw_df: DataFrame) -> DataFrame:\n    return raw_df.select(from_json(col('value').cast('string'), SCHEMA).alias('data')).select('data.*')\n\ndef aggregate_by_vendor(df: DataFrame) -> DataFrame:\n    return df.groupBy('vendorID').agg(spark_sum('totalAmount').alias('revenue'))\n\ndef aggregate_by_location(df: DataFrame) -> DataFrame:\n    return df.groupBy('puLocationId').agg(count('*').alias('trip_count'))\n\nCreate tests that cover all functions and their interactions.",
+      "expected_output": "A complete test file with: 1) individual function unit tests, 2) integration tests combining multiple functions, 3) schema validation across pipeline, 4) sample data fixtures for the full pipeline, 5) edge case handling",
+      "files": []
+    }
+  ]
+}

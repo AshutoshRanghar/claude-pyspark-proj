@@ -1,0 +1,23 @@
+{
+  "skill_name": "python-pyspark-refactoring",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Refactor this PySpark streaming code. It reads from Kafka, parses JSON, and writes KPI tables. I'm concerned about performance - the job processes high-volume events and I want to make sure we're not doing unnecessary shuffles. Also, the credentials are hardcoded and I want to externalize them.",
+      "expected_output": "Refactored code with: 1) Externalized configuration for credentials and parameters, 2) Optimized partitioning strategy, 3) Proper type hints, 4) Improved error handling, 5) Clear documentation",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I have this Python function that transforms financial transaction data. It works but the code is hard to test and understand. Can you refactor it using SOLID principles and make it more maintainable? Here's the code:\n\ncode:\ndef process_transactions(spark, path, output_path):\n    df = spark.read.parquet(path)\n    df = df.filter(col('amount') > 0)\n    df = df.select('*').filter(col('status') == 'completed')\n    result_df = df.groupBy('account_id', 'transaction_type').agg(sum('amount').alias('total'), count('*').alias('count'))\n    result_df.write.mode('overwrite').parquet(output_path)\n    return result_df",
+      "expected_output": "Refactored code demonstrating: 1) Separation of concerns (reading, filtering, aggregation), 2) Type hints and documentation, 3) Configurable parameters instead of hardcoded values, 4) Better function names, 5) Improved testability",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm joining a small lookup table with a large fact table millions of times per job. The current approach is slow. Also, the code mixes business logic with I/O operations which makes unit testing difficult. Can you optimize the join strategy and refactor for better testability?",
+      "expected_output": "Refactored code showing: 1) Broadcast join usage for small tables, 2) Separation of I/O and logic concerns, 3) Pure functions for transformations, 4) Dependency injection for SparkSession, 5) Performance explanation",
+      "files": []
+    }
+  ]
+}

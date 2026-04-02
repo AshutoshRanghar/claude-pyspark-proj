@@ -1,0 +1,19 @@
+# This is a Databricks asset bundle definition for claude-pyspark-proj.
+# The Databricks extension requires databricks.yml configuration file.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+
+bundle:
+  name: claude-pyspark-proj
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-5226613806345386.6.azuredatabricks.net
+
+  ## Optionally, there could be 'staging' or 'prod' targets here.
+  #
+  # prod:
+  #   workspace:
+  #     host: https://adb-5226613806345386.6.azuredatabricks.net

@@ -1,0 +1,23 @@
+{
+  "skill_name": "code-reviewer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Please review the streaming code in src/claude_pyspark_proj/streaming/get_data_from_event_hubs.py. This is our Kafka-to-Delta pipeline. Look for any bugs, correctness issues, and design problems. Be specific about line numbers and provide actionable fixes.",
+      "expected_output": "Structured code review report identifying critical issues (like the hardcoded credentials in config), high-level concerns (watermarking strategy, duplicate timestamp calculations), and medium-level improvements (schema validation, error handling)",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I have this PySpark data transformation code. Can you analyze it for correctness and design issues? Look for potential runtime errors, inefficient patterns, and edge cases I might have missed.\n\nfrom pyspark.sql.functions import from_json, col, avg\n\ndef process_ride_data(df):\n    # Parse JSON\n    parsed = df.select(from_json(col('value'), schema).alias('data')).select('data.*')\n    # Add metrics\n    result = parsed.filter(col('fareAmount') > 0).groupBy('vendorID').agg(avg('tripDistance')).collect()\n    return result",
+      "expected_output": "Report identifying critical issues like collect() in streaming (breaks streaming contract), high issues with groupBy without watermark in streaming context, medium issues with lack of null handling and error recovery",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Review this utility function for data validation in my PySpark project:\n\nfrom pyspark.sql.functions import col\n\ndef validate_taxi_data(df):\n    # Remove bad records\n    df = df.filter(col('tripDistance') > 0)\n    df = df.filter(col('fareAmount') > 0)\n    df = df.filter(col('passengerCount') > 0)\n    \n    # Calculate derived columns\n    df = df.withColumn('pricePerMile', col('fareAmount') / col('tripDistance'))\n    \n    return df\n\nIdentify any correctness issues, performance problems, and design improvements.",
+      "expected_output": "Report identifying critical issue (division by zero risk after filtering can still occur with float edge cases), high issues (multiple filter operations are inefficient, should be combined), medium issues (no handling for null values, missing data type validation), and recommendations to combine filters and add null-safe division",
+      "files": []
+    }
+  ]
+}
