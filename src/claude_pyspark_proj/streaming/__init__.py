@@ -1,5 +1,5 @@
 """Streaming module for PySpark streaming operations."""
 
-from .get_data_from_event_hubs import StreamProcessor
+from .get_data_from_event_hubs import run_pipeline
 
-__all__ = ["StreamProcessor"]
+__all__ = ["run_pipeline"]
