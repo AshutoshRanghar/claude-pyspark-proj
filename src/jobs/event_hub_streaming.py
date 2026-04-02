@@ -10,18 +10,30 @@ Usage in Databricks:
 """
 
 import sys
-from pathlib import Path
 from pyspark.sql import SparkSession
 
-# Add src directory to Python path for imports
-# In Databricks, the job file is in /Workspace/Users/.../files/src/jobs/event_hub_streaming.py
-# So we need to add the parent src directory to the path
-src_path = str(Path(__file__).parent.parent)
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
+# In Databricks, try to import the module
+# The bundle deployment puts files in the workspace, and Databricks
+# adds them to the Python path automatically
+try:
+    # First attempt: Direct import (works if package is installed)
+    from claude_pyspark_proj.streaming.get_data_from_event_hubs import run_pipeline
+except ImportError as e:
+    # Fallback: Load the module directly from the workspace
+    print(f"[INFO] Direct import failed. Attempting to load from workspace...")
 
-# Import the streaming pipeline
-from claude_pyspark_proj.streaming.get_data_from_event_hubs import run_pipeline
+    # Get the workspace path where files are deployed
+    workspace_path = "/Workspace/Users/ashutosh_ranghar@epam.com/.bundle/claude-pyspark-proj/dev/files"
+
+    if workspace_path not in sys.path:
+        sys.path.insert(0, workspace_path)
+
+    try:
+        from claude_pyspark_proj.streaming.get_data_from_event_hubs import run_pipeline
+    except ImportError as e2:
+        print(f"[ERROR] Failed to import streaming pipeline module: {e2}")
+        print(f"[INFO] sys.path contents: {sys.path}")
+        raise
 
 
 def main():
