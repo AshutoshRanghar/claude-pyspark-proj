@@ -17,6 +17,12 @@ import os
 from dataclasses import dataclass
 
 from pyspark.sql import SparkSession, DataFrame
+
+# For Databricks - get dbutils if available
+try:
+    dbutils
+except NameError:
+    dbutils = None
 from pyspark.sql.functions import (
     col,
     from_json,
@@ -47,15 +53,38 @@ class KafkaConfig:
 
     @property
     def connection_string(self) -> str:
-        """Get connection string from environment variable."""
-        conn_str = os.getenv(
-            "EVENT_HUBS_CONNECTION_STRING",
-            os.getenv("DATABRICKS_AZURE_EVENT_HUBS_CONNECTION_STRING")
-        )
+        """Get connection string from Databricks Secrets or environment."""
+        conn_str = None
+
+        # Try 1: Databricks Secrets (recommended for Databricks)
+        if dbutils:
+            try:
+                conn_str = dbutils.secrets.get(scope="event-hubs", key="connection-string")
+                print("[INFO] Retrieved connection string from Databricks Secrets")
+            except Exception as e:
+                print(f"[WARN] Could not get secret from Databricks: {e}")
+
+        # Try 2: Environment variables
+        if not conn_str:
+            conn_str = os.getenv("EVENT_HUBS_CONNECTION_STRING")
+            if conn_str:
+                print("[INFO] Retrieved connection string from environment variable")
+
+        # Try 3: Fallback environment variable
+        if not conn_str:
+            conn_str = os.getenv("DATABRICKS_AZURE_EVENT_HUBS_CONNECTION_STRING")
+            if conn_str:
+                print("[INFO] Retrieved connection string from fallback environment variable")
+
         if not conn_str:
             raise ValueError(
-                "Connection string not found. Set EVENT_HUBS_CONNECTION_STRING "
-                "environment variable in Databricks secrets or job parameters."
+                "Connection string not found!\n"
+                "Option 1 (Recommended): Create Databricks Secret\n"
+                "  1. databricks secrets create-scope --scope event-hubs\n"
+                "  2. databricks secrets put --scope event-hubs --key connection-string\n"
+                "\n"
+                "Option 2: Set environment variable\n"
+                "  export EVENT_HUBS_CONNECTION_STRING='your-connection-string'\n"
             )
         return conn_str
 
