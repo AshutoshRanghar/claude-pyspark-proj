@@ -1,0 +1,14 @@
+resources:
+  jobs:
+    event_hub_streaming_job:
+      name: Event Hub Kafka Streaming Pipeline
+      description: "Reads taxi events from Azure Event Hubs and writes KPI tables"
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      tasks:
+        - task_key: run_event_hub_streaming
+          spark_python_task:
+            python_file: ${workspace.file_path}/src/jobs/event_hub_streaming.py
+          existing_cluster_id: "0317-084801-hofwe5r6"
+      queue:
+        enabled: true

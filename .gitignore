@@ -1,12 +1,43 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
 build/
 dist/
 wheels/
 *.egg-info
+.eggs/
 
 # Virtual environments
-.venv
+venv/
+env/
+.venv/
+ENV/
 
-.databricks
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Databricks
+.databricks/
+.databricks_config
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Spark
+target/
+spark-warehouse/
+
+# Environment
+.env
+.env.local
