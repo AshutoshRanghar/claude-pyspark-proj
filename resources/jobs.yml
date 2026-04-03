@@ -12,3 +12,16 @@ resources:
           existing_cluster_id: "0317-084801-hofwe5r6"
       queue:
         enabled: true
+
+    autoloader_job:
+      name: Autoloader Blob Storage Ingestion
+      description: "Ingests data from Azure Blob Storage with schema evolution"
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      tasks:
+        - task_key: run_autoloader
+          spark_python_task:
+            python_file: ${workspace.file_path}/src/jobs/autoloader_job.py
+          existing_cluster_id: "0317-084801-hofwe5r6"
+      queue:
+        enabled: true
