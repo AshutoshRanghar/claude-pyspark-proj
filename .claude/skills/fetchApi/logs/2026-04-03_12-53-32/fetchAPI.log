@@ -1,0 +1,22 @@
+[2026-04-03 12:53:32.680014] Starting fetch_sample_data.py
+[2026-04-03 12:53:32.680020] Data directory: c:\Users\AshutoshRanghar\claude-pyspark-proj\data
+[2026-04-03 12:53:32.680022] Fetching 6 files...
+[2026-04-03 12:53:32.963504] Fetching: https://raw.githubusercontent.com/anshlambagit/AnshLambaYoutube/refs/heads/main/DBT_Masterclass/dim_customer.csv
+[2026-04-03 12:53:33.027685] [SUCCESS] Saved dim_customer.csv (3695 bytes)
+[2026-04-03 12:53:33.027704] Fetching: https://raw.githubusercontent.com/anshlambagit/AnshLambaYoutube/refs/heads/main/DBT_Masterclass/dim_store.csv
+[2026-04-03 12:53:33.039326] [SUCCESS] Saved dim_store.csv (441 bytes)
+[2026-04-03 12:53:33.039337] Fetching: https://raw.githubusercontent.com/anshlambagit/AnshLambaYoutube/refs/heads/main/DBT_Masterclass/dim_date.csv
+[2026-04-03 12:53:33.051057] [SUCCESS] Saved dim_date.csv (6708 bytes)
+[2026-04-03 12:53:33.051072] Fetching: https://raw.githubusercontent.com/anshlambagit/AnshLambaYoutube/refs/heads/main/DBT_Masterclass/dim_product.csv
+[2026-04-03 12:53:33.065359] [SUCCESS] Saved dim_product.csv (648 bytes)
+[2026-04-03 12:53:33.065402] Fetching: https://raw.githubusercontent.com/anshlambagit/AnshLambaYoutube/refs/heads/main/DBT_Masterclass/fact_sales.csv
+[2026-04-03 12:53:33.092482] [SUCCESS] Saved fact_sales.csv (335457 bytes)
+[2026-04-03 12:53:33.092502] Fetching: https://raw.githubusercontent.com/anshlambagit/AnshLambaYoutube/refs/heads/main/DBT_Masterclass/fact_returns.csv
+[2026-04-03 12:53:33.105206] [SUCCESS] Saved fact_returns.csv (6612 bytes)
+
+[2026-04-03 12:53:33.105453] ===== SUMMARY =====
+[2026-04-03 12:53:33.105456] Total URLs: 6
+[2026-04-03 12:53:33.105458] Successful: 6
+[2026-04-03 12:53:33.105459] Failed: 0
+[2026-04-03 12:53:33.105459] Data saved to: c:\Users\AshutoshRanghar\claude-pyspark-proj\data
+[2026-04-03 12:53:33.105462] Fetch completed!
