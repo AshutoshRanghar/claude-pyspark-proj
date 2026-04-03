@@ -11,6 +11,7 @@ Tests cover:
 Run with: pytest tests/test_streaming_pipeline.py -v
 """
 
+import json
 import pytest
 from datetime import datetime
 from pyspark.sql import SparkSession, DataFrame
@@ -174,7 +175,6 @@ def sample_kafka_frame(spark_session, taxi_ride_schema):
     ]
 
     # Convert to JSON strings and create DataFrame
-    import json
     kafka_data = [(json.dumps(event),) for event in sample_events]
 
     return spark_session.createDataFrame(kafka_data, ["value"])
@@ -612,8 +612,6 @@ def create_sample_taxi_data(spark_session, num_records=5):
     Returns:
         DataFrame with sample taxi data
     """
-    import json
-
     schema = StructType([
         StructField("vendorID", StringType(), True),
         StructField("tpepPickupDateTime", LongType(), True),
