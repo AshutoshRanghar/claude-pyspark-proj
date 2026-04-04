@@ -23,4 +23,4 @@ targets:
   dev:
     mode: development
     workspace:
-      host: ${DATABRICKS_HOST}
+      host:
