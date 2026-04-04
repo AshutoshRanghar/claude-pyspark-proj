@@ -12,6 +12,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         "pyspark>=3.4.0",
+        "httpx>=0.25.0",
     ],
     extras_require={
         "dev": [

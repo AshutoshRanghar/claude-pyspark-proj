@@ -1,0 +1,7 @@
+# Core dependencies
+pyspark>=3.4.0
+httpx>=0.25.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
