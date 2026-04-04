@@ -20,4 +20,10 @@ setup(
             "pytest-cov>=4.0.0",
         ],
     },
+    entry_points={
+        "console_scripts": [
+            "event-hub-streaming=claude_pyspark_proj.cli_event_hub:main",
+            "autoloader-ingestion=claude_pyspark_proj.cli_autoloader:main",
+        ],
+    },
 )
