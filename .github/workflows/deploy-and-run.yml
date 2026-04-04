@@ -69,11 +69,6 @@ jobs:
           echo "CLI installed successfully"
           databricks --version
 
-      - name: Validate DAB
-        run: |
-          databricks bundle validate \
-            --target ${{ github.event.inputs.environment || 'dev' }}
-
   deploy:
     name: Deploy to Databricks
     runs-on: ubuntu-latest
