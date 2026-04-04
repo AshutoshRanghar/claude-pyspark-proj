@@ -1,16 +1,24 @@
-[project]
+[tool.poetry]
 name = "claude-pyspark-proj"
 version = "0.1.0"
 description = "PySpark streaming pipeline with Azure Event Hubs integration"
+authors = ["Ashutosh Ranghar <ashutosh_ranghar@epam.com>"]
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = [
-    "pyspark>=3.4.0",
-    "httpx>=0.25.0",
-]
+packages = [{include = "claude_pyspark_proj", from = "src"}]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-]
+[tool.poetry.dependencies]
+python = "^3.10"
+pyspark = ">=3.4.0"
+httpx = ">=0.25.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0.0"
+pytest-cov = ">=4.0.0"
+
+[tool.poetry.scripts]
+event-hub-streaming = "claude_pyspark_proj.cli_event_hub:main"
+autoloader-ingestion = "claude_pyspark_proj.cli_autoloader:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
