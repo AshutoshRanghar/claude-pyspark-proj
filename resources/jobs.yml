@@ -10,6 +10,8 @@ resources:
           spark_python_task:
             python_file: ${workspace.file_path}/src/jobs/event_hub_streaming.py
           existing_cluster_id: "0317-084801-hofwe5r6"
+          libraries:
+            - whl: "dbfs:/libs/*.whl"
       queue:
         enabled: true
 
@@ -23,5 +25,7 @@ resources:
           spark_python_task:
             python_file: ${workspace.file_path}/src/jobs/autoloader_job.py
           existing_cluster_id: "0317-084801-hofwe5r6"
+          libraries:
+            - whl: "dbfs:/libs/*.whl"
       queue:
         enabled: true
