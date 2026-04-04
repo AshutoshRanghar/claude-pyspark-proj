@@ -1,28 +1,10 @@
-name: Deploy & Run Databricks Job
+name: Deploy PySpark Project to Databricks
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          - prod
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
-
-env:
-  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    branches:
+      - master
+      - main
 
 jobs:
   build:
@@ -34,14 +16,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: '3.10'
 
       - name: Install build tools
-        run: pip install build wheel
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
 
       - name: Build wheel
-        run: python -m build --wheel
+        run: python setup.py bdist_wheel
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
@@ -50,8 +35,8 @@ jobs:
           path: dist/*.whl
           retention-days: 7
 
-  validate:
-    name: Validate Bundle
+  deploy:
+    name: Deploy to Databricks
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -60,32 +45,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: '3.10'
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli
-
-      - name: Validate DAB
         run: |
-          databricks bundle validate \
-            --target ${{ github.event.inputs.environment || 'dev' }}
-
-  deploy:
-    name: Deploy to Databricks
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install Databricks CLI
-        run: pip install databricks-cli
+          pip install databricks-cli
+          databricks --version
 
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
@@ -93,92 +58,48 @@ jobs:
           name: python-wheel
           path: dist
 
-      - name: Upload wheel to Databricks DBFS
+      - name: Upload wheel to DBFS
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           WHEEL_FILE=$(ls dist/*.whl | head -1)
-          WHEEL_NAME=$(basename $WHEEL_FILE)
+          WHEEL_NAME=$(basename "$WHEEL_FILE")
           echo "Uploading wheel: $WHEEL_NAME"
+          databricks fs mkdirs dbfs:/libs
           databricks fs cp "$WHEEL_FILE" "dbfs:/libs/$WHEEL_NAME" --overwrite
           echo "Wheel uploaded to dbfs:/libs/$WHEEL_NAME"
 
-      - name: Upload init script to Databricks DBFS
+      - name: Upload init script
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           echo "Uploading init script..."
+          databricks fs mkdirs dbfs:/scripts
           databricks fs cp "scripts/install-wheel.sh" "dbfs:/scripts/install-wheel.sh" --overwrite
-          echo "Init script uploaded to dbfs:/scripts/install-wheel.sh"
+          echo "Init script uploaded"
 
-      - name: Deploy Bundle
+      - name: Validate Databricks Bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          databricks bundle deploy \
-            --target ${{ github.event.inputs.environment || 'dev' }}
+          echo "Validating Databricks bundle..."
+          databricks bundle validate
 
-  run-job:
-    name: Run Streaming Job
-    runs-on: ubuntu-latest
-    needs: deploy
-    if: success()
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install Databricks CLI
-        run: pip install databricks-cli
-
-      - name: Get Job ID
-        id: job_id
+      - name: Deploy Databricks Bundle
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          JOB_ID=$(databricks jobs list --filter 'name = "Event Hub Kafka Streaming Pipeline"' \
-            --output json | jq -r '.jobs[0].job_id')
-          echo "job_id=$JOB_ID" >> $GITHUB_OUTPUT
-          echo "Job ID: $JOB_ID"
+          echo "Deploying Databricks bundle..."
+          databricks bundle deploy
 
-      - name: Run Job
-        id: run_job
+      - name: Run Autoloader Job
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          RUN_ID=$(databricks jobs run-now --job-id ${{ steps.job_id.outputs.job_id }} \
-            --output json | jq -r '.run_id')
-          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
-          echo "Run ID: $RUN_ID"
-
-      - name: Wait for Job Completion
-        run: |
-          for i in {1..120}; do
-            STATUS=$(databricks runs get --run-id ${{ steps.run_job.outputs.run_id }} \
-              --output json | jq -r '.state')
-            echo "Attempt $i: Job Status = $STATUS"
-
-            if [ "$STATUS" = "TERMINATED" ] || [ "$STATUS" = "SKIPPED" ]; then
-              RESULT=$(databricks runs get --run-id ${{ steps.run_job.outputs.run_id }} \
-                --output json | jq -r '.state_message')
-              echo "Job completed: $RESULT"
-              break
-            fi
-
-            if [ "$STATUS" = "INTERNAL_ERROR" ]; then
-              echo "Job failed with internal error"
-              exit 1
-            fi
-
-            sleep 30
-          done
-
-      - name: Get Job Logs
-        if: always()
-        run: |
-          databricks runs get-output --run-id ${{ steps.run_job.outputs.run_id }} \
-            --output text || true
-
-      - name: Report Status
-        if: success()
-        run: echo "✓ Streaming job completed successfully!"
-
-      - name: Report Failure
-        if: failure()
-        run: |
-          echo "✗ Job execution failed"
-          exit 1
+          echo "Running autoloader job..."
+          databricks jobs run-now --job-id $(databricks jobs list --output json | jq -r '.jobs[] | select(.settings.name=="Autoloader Blob Storage Ingestion") | .job_id' 2>/dev/null | head -1)
