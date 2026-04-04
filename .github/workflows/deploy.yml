@@ -48,30 +48,33 @@ jobs:
           path: dist
 
       - name: Install Databricks CLI
-        uses: databricks/setup-cli@main
+        run: pip install databricks-cli
 
-      - name: Upload wheel to DBFS
+      - name: Configure Databricks Credentials
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          mkdir -p ~/.databricks
+          cat > ~/.databricks/config << EOF
+          [DEFAULT]
+          host = $DATABRICKS_HOST
+          token = $DATABRICKS_TOKEN
+          EOF
+
+      - name: Upload wheel to DBFS
         run: |
           WHEEL_FILE=$(ls dist/*.whl | head -1)
           WHEEL_NAME=$(basename "$WHEEL_FILE")
           echo "Uploading wheel: $WHEEL_NAME"
-          databricks fs mkdirs dbfs:/libs
-          databricks fs cp "$WHEEL_FILE" "dbfs:/libs/$WHEEL_NAME" --overwrite
+          databricks fs mkdirs dbfs:/libs --profile DEFAULT
+          databricks fs cp "$WHEEL_FILE" "dbfs:/libs/$WHEEL_NAME" --overwrite --profile DEFAULT
           echo "Wheel uploaded to dbfs:/libs/$WHEEL_NAME"
 
       - name: Deploy Bundle
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        run: databricks bundle deploy -t dev
+        run: databricks bundle deploy --profile DEFAULT -t dev
 
       - name: Run Autoloader Job
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           # Use the KEY from the YAML (autoloader_job), not the display name
-          databricks bundle run autoloader_job -t dev
+          databricks bundle run autoloader_job --profile DEFAULT -t dev
