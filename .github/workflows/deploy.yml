@@ -19,7 +19,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Databricks CLI
+      - name: Install Databricks CLI  
         uses: databricks/setup-cli@main
 
       - name: Verify Authentication
