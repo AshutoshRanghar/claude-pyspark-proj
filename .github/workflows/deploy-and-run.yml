@@ -64,7 +64,10 @@ jobs:
           cache: 'pip'
 
       - name: Install Databricks CLI
-        run: pip install databricks-sdk
+        run: |
+          pip install databricks-cli==0.18.0
+          echo "CLI installed successfully"
+          databricks --version
 
       - name: Validate DAB
         run: |
@@ -85,7 +88,9 @@ jobs:
           cache: 'pip'
 
       - name: Install Databricks CLI
-        run: pip install databricks-sdk
+        run: pip install databricks-cli==0.18.0
+                  echo "CLI installed successfully"
+          databricks --version
 
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
