@@ -8,26 +8,31 @@ jobs:
   deploy:
     name: Deploy Bundle
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    
+    # Setting these at the job level so all steps can see them
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_AUTH_TYPE: pat
 
-      # Installs the MODERN Go-based CLI (v0.200+)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
 
+      - name: Verify Authentication
+        run: |
+          databricks auth describe
+          echo "Connected to: $DATABRICKS_HOST"
+
       - name: Deploy Bundle
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          # This line prevents the "IndexError" and Azure auth prompts
-          DATABRICKS_AUTH_TYPE: pat 
-        run: databricks bundle deploy -t dev
+        run: |
+          # This builds the wheel and updates the Databricks Job in one go
+          databricks bundle deploy -t dev
 
       - name: Run Autoloader Job
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_AUTH_TYPE: pat
         run: |
-          # Use the job key 'autoloader_job' defined in your databricks.yml
+          # 'autoloader_job' must match the key in your databricks.yml
           databricks bundle run autoloader_job -t dev
