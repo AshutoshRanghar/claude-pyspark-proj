@@ -64,7 +64,7 @@ jobs:
           cache: 'pip'
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli
+        run: pip install databricks-cli>=0.18.0
 
       - name: Validate DAB
         run: |
@@ -85,7 +85,7 @@ jobs:
           cache: 'pip'
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli
+        run: pip install databricks-cli>=0.18.0
 
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
@@ -127,7 +127,7 @@ jobs:
           cache: 'pip'
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli
+        run: pip install databricks-cli>=0.18.0
 
       - name: Get Job ID
         id: job_id
