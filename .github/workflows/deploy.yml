@@ -58,9 +58,9 @@ jobs:
           WHEEL_FILE=$(ls dist/*.whl | head -1)
           WHEEL_NAME=$(basename "$WHEEL_FILE")
           echo "Uploading wheel: $WHEEL_NAME"
-          databricks fs mkdirs dbfs:/libs
-          databricks fs cp "$WHEEL_FILE" "dbfs:/libs/$WHEEL_NAME" --overwrite
-          echo "Wheel uploaded to dbfs:/libs/$WHEEL_NAME"
+          databricks fs mkdirs dbfs:/FileStore/libs
+          databricks fs cp "$WHEEL_FILE" "dbfs:/FileStore/libs/$WHEEL_NAME" --overwrite
+          echo "Wheel uploaded to dbfs:/FileStore/libs/$WHEEL_NAME"
 
       - name: Deploy Bundle
         env:
