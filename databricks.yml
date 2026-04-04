@@ -1,17 +1,26 @@
 bundle:
   name: claude-pyspark-proj
 
-include:
-  - resources/*.yml
+artifacts:
+  main_wheel:
+    type: whl
+    path: . # This builds the wheel from your root setup.py
+
+resources:
+  jobs:
+    autoloader_job:
+      name: "Autoloader Blob Storage Ingestion"
+      tasks:
+        - task_key: run_autoloader
+          existing_cluster_id: "0317-084801-hofwe5r6"
+          python_wheel_task:
+            package_name: "claude-pyspark-proj"
+            entry_point: "autoloader-ingestion"
+          libraries:
+            - whl: ./dist/*.whl # The CLI resolves this path during deploy
 
 targets:
   dev:
     mode: development
-    default: true
     workspace:
-      host: https://adb-5226613806345386.6.azuredatabricks.net
-
-  prod:
-    mode: production
-    workspace:
-      host: https://adb-5226613806345386.6.azuredatabricks.net
+      host: ${DATABRICKS_HOST}
