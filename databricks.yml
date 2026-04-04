@@ -23,4 +23,3 @@ targets:
   dev:
     mode: development
     workspace:
-      host:
