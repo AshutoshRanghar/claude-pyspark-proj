@@ -83,8 +83,9 @@ jobs:
           cache: 'pip'
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli==0.18.0
-                  echo "CLI installed successfully"
+        run: |
+          pip install databricks-cli==0.18.0
+          echo "CLI installed successfully"
           databricks --version
 
       - name: Download wheel artifact
